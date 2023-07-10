@@ -3,7 +3,7 @@ The best member booster for discord, super easy to use and effective! What are y
 
 ## 📹 Preview
 
-https://github-production-user-asset-6210df.s3.amazonaws.com/118562174/252298546-c9ba8753-ee6a-4fb4-86e7-5cd5e70f39ab.mp4
+https://github.com/H4cK3dR4Du/Spotify-Account-Generator/assets/118562174/c9ba8753-ee6a-4fb4-86e7-5cd5e70f39ab
 
 ## 🔥 Features
 - Fully Requests Based Generator
