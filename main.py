@@ -47,6 +47,50 @@ proxy_error = 0
 errors = 0
 fingerprint = 0
 
+def save_proxies(proxies):
+    with open("proxies.txt", "w") as file:
+        file.write("\n".join(proxies))
+
+def get_proxies():
+    with open('proxies.txt', 'r', encoding='utf-8') as f:
+        proxies = f.read().splitlines()
+    if not proxies:
+        proxy_log = {}
+    else:
+        proxy = random.choice(proxies)
+        proxy_log = {
+            "http://": f"http://{proxy}", "https://": f"http://{proxy}"
+        }
+    try:
+        url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all"
+        response = httpx.get(url, proxies=proxy_log, timeout=60)
+
+        if response.status_code == 200:
+            proxies = response.text.splitlines()
+            save_proxies(proxies)
+        else:
+            time.sleep(1)
+            get_proxies()
+    except httpx.ProxyError:
+        get_proxies()
+    except httpx.ReadError:
+        get_proxies()
+    except httpx.ConnectTimeout:
+        get_proxies()
+    except httpx.ReadTimeout:
+        get_proxies()
+    except httpx.ConnectError:
+        get_proxies()
+    except httpx.ProtocolError:
+        get_proxies()
+
+def check_proxies_file():
+    file_path = "proxies.txt"
+    if os.path.exists(file_path) and os.path.getsize(file_path) == 0:
+        get_proxies()
+
+check_proxies_file()
+
 def get_time_rn():
     date = datetime.datetime.now()
     hour = date.hour
