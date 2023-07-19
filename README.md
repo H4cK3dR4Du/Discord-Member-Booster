@@ -20,7 +20,7 @@ https://github.com/H4cK3dR4Du/Spotify-Account-Generator/assets/118562174/c9ba875
 
 ## 🎉 Future Updates
 
-- ⭐ 15 Stars ---> Auto Proxy Scraper ( ❌ )
+- ⭐ 15 Stars ---> Auto Proxy Scraper ( ✅ )
 - ⭐ 30 Stars ---> Generates Email Verified Accounts ( ❌ )
 - ⭐ 40 Stars ---> Multiple Server Joiner When Generating ( ❌ )
 - ⭐ 200 Stars ---> Hcaptcha AI Solver ( ❌ )
