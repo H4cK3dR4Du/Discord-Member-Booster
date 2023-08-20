@@ -70,8 +70,8 @@ with open("proxies.txt", "w", encoding='utf-8') as f:
 time.sleep(1)
 
 with open(f"config.json", "r") as j:
-    data = json.load(j)
-    if data['proxy_scraper'] == "y" or data['proxy_scraper'] == "yes":
+    dassss = json.load(j)
+    if dassss['proxy_scraper'] == "y" or dassss['proxy_scraper'] == "yes":
         def save_proxies(proxies):
             with open("proxies.txt", "w") as file:
                 file.write("\n".join(proxies))
