@@ -10,6 +10,7 @@ try:
     import threading
     import datetime
     import tls_client
+    import websocket
 except ModuleNotFoundError:
     os.system("pip install requests")
     os.system("pip install httpx")
@@ -19,6 +20,7 @@ except ModuleNotFoundError:
     os.system("pip install threading")
     os.system("pip install datetime")
     os.system("pip install tls_client")
+    os.system("pip install websocket")
 
 from colorama import Fore
 from pystyle import Write, System, Colors, Colorate, Anime
@@ -27,6 +29,7 @@ from threading import Lock
 from random import choice
 from tls_client import Session
 from json import dumps
+from websocket import WebSocket
 
 red = Fore.RED
 yellow = Fore.YELLOW
@@ -47,50 +50,6 @@ proxy_error = 0
 errors = 0
 fingerprint = 0
 
-def save_proxies(proxies):
-    with open("proxies.txt", "w") as file:
-        file.write("\n".join(proxies))
-
-def get_proxies():
-    with open('proxies.txt', 'r', encoding='utf-8') as f:
-        proxies = f.read().splitlines()
-    if not proxies:
-        proxy_log = {}
-    else:
-        proxy = random.choice(proxies)
-        proxy_log = {
-            "http://": f"http://{proxy}", "https://": f"http://{proxy}"
-        }
-    try:
-        url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all"
-        response = httpx.get(url, proxies=proxy_log, timeout=60)
-
-        if response.status_code == 200:
-            proxies = response.text.splitlines()
-            save_proxies(proxies)
-        else:
-            time.sleep(1)
-            get_proxies()
-    except httpx.ProxyError:
-        get_proxies()
-    except httpx.ReadError:
-        get_proxies()
-    except httpx.ConnectTimeout:
-        get_proxies()
-    except httpx.ReadTimeout:
-        get_proxies()
-    except httpx.ConnectError:
-        get_proxies()
-    except httpx.ProtocolError:
-        get_proxies()
-
-def check_proxies_file():
-    file_path = "proxies.txt"
-    if os.path.exists(file_path) and os.path.getsize(file_path) == 0:
-        get_proxies()
-
-check_proxies_file()
-
 def get_time_rn():
     date = datetime.datetime.now()
     hour = date.hour
@@ -104,6 +63,60 @@ locked_proxies = []
 proxies = []
 proxy_type = "http"
 proxy_lock = Lock()
+
+with open("proxies.txt", "w", encoding='utf-8') as f:
+    f.write("")
+
+time.sleep(1)
+
+with open(f"config.json", "r") as j:
+    data = json.load(j)
+    if data['proxy_scraper'] == "y" or data['proxy_scraper'] == "yes":
+        def save_proxies(proxies):
+            with open("proxies.txt", "w") as file:
+                file.write("\n".join(proxies))
+
+        def get_proxies():
+            with open('proxies.txt', 'r', encoding='utf-8') as f:
+                proxies = f.read().splitlines()
+            if not proxies:
+                proxy_log = {}
+            else:
+                proxy = random.choice(proxies)
+                proxy_log = {
+                    "http://": f"http://{proxy}", "https://": f"http://{proxy}"
+                }
+            try:
+                url = "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all"
+                response = httpx.get(url, proxies=proxy_log, timeout=60)
+
+                if response.status_code == 200:
+                    proxies = response.text.splitlines()
+                    save_proxies(proxies)
+                else:
+                    time.sleep(1)
+                    get_proxies()
+            except httpx.ProxyError:
+                get_proxies()
+            except httpx.ReadError:
+                get_proxies()
+            except httpx.ConnectTimeout:
+                get_proxies()
+            except httpx.ReadTimeout:
+                get_proxies()
+            except httpx.ConnectError:
+                get_proxies()
+            except httpx.ProtocolError:
+                get_proxies()
+
+        def check_proxies_file():
+            file_path = "proxies.txt"
+            if os.path.exists(file_path) and os.path.getsize(file_path) == 0:
+                get_proxies()
+
+        check_proxies_file()
+    else:
+        pass
 
 def balance():
     proxy = (random.choice
@@ -137,13 +150,13 @@ def balance():
             balance = data["balance"]
             return balance
         elif "ERROR_KEY_DOES_NOT_EXIST" in response.text:
-            return None
+            return "0"
         else:
-            return None
+            return "0"
     except requests.exceptions.RequestException as e:
-        pass
+        return "0"
     except Exception as e:
-        pass
+        return "0"
 
 def generate_members():
     global generated, failed, cap_solved, proxy_error, errors
@@ -151,35 +164,37 @@ def generate_members():
     output_lock = threading.Lock()
     try:
         money = balance()
-        ctypes.windll.kernel32.SetConsoleTitleW(f'Discord Member Booster | Generated ~ {generated} | Solved ~ {cap_solved} | Errors ~ {errors} | Proxy Error ~ {proxy_error} | Balance ~ ${money} | https://github.com/H4cK3dR4Du')
-        proxy = (choice
-                 (open
-                  ("proxies.txt", "r").readlines()
-                  ).strip()
-        if len(open
-               ("proxies.txt", "r")
-               .readlines()) != 0
-        else None
+        ctypes.windll.kernel32.SetConsoleTitleW(f'Discord Member Booster | Generated ~ {generated} | Solved ~ {cap_solved} | Errors ~ {errors} | Proxy Error ~ {proxy_error} | https://github.com/H4cK3dR4Du')
+        session = tls_client.Session(
+            client_identifier="safari_ios_16_0"
         )
-        session = Session(
-                client_identifier="chrome_114",
-                random_tls_extension_order=True
-        )
+        
+        proxies = (random.choice(open("proxies.txt", "r").readlines()).strip()
+            if len(open("proxies.txt", "r").readlines()) != 0
+            else None)
+
+        if ":" in proxies and len(proxies.split(":")) == 4:
+            ip, port, user, pw = proxies.split(":")
+            proxy = f"http://{user}:{pw}@{ip}:{port}"
+        else:
+            ip, port = proxies.split(":")
+            proxy = f"http://{ip}:{port}"
+
         session.proxies = {
-            "http": "http://" + proxy,
-            "https": "http://" + proxy
+            "http": proxy,
+            "https": proxy
         }
 
         headers = {
             'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Language': 'es-ES,es;q=0.9',
             'Connection': 'keep-alive',
             'Referer': 'https://discord.com/',
             'Sec-Fetch-Dest': 'empty',
             'Sec-Fetch-Mode': 'cors',
             'Sec-Fetch-Site': 'same-origin',
             'Sec-GPC': '1',
-            'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Mobile Safari/537.36 Edg/114.0.1823.51',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
             'X-Track': 'eyJvcyI6IklPUyIsImJyb3dzZXIiOiJTYWZlIiwic3lzdGVtX2xvY2FsZSI6ImVuLUdCIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKElQaG9uZTsgQ1BVIEludGVybmFsIFByb2R1Y3RzIFN0b3JlLCBhcHBsaWNhdGlvbi8yMDUuMS4xNSAoS0hUTUwpIFZlcnNpb24vMTUuMCBNb2JpbGUvMTVFMjQ4IFNhZmFyaS82MDQuMSIsImJyb3dzZXJfdmVyc2lvbiI6IjE1LjAiLCJvc192IjoiIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfZG9tYWluX2Nvb2tpZSI6InN0YWJsZSIsImNsaWVudF9idWlsZF9udW1iZXIiOjk5OTksImNsaWVudF9ldmVudF9zb3VyY2UiOiJzdGFibGUiLCJjbGllbnRfZXZlbnRfc291cmNlIjoic3RhYmxlIn0',
         }
 
@@ -197,9 +212,6 @@ def generate_members():
             errors += 1
             generate_members()
         captcha_code = 'P1_eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.hKdwYXNza2V5xQbV'
-        with open('config.json') as config_file:
-            config_data = json.load(config_file)
-        invite = config_data.get('invite')
         cap = Solver.solve_capmonster(site_key='4c672d35-0701-42b2-88c3-78380b0db560', page_url='https://discord.com/')
         cap_solved += 1
         with output_lock:
@@ -209,29 +221,35 @@ def generate_members():
         response = requests.get(url)
         lines = response.text.splitlines()
         random_user = random.choice(lines)
+        with open("config.json") as f:
+            data = json.load(f)
+            invite_code = data['invite']
+
         payload = {
-            "consent": True,
-            "fingerprint": fingerprint,
-            "username": random_user,
-            "gift_code_sku_id": None,
-            "invite": invite,
-            "captcha_key": cap,
+            'consent': True,
+            'global_name': random_user,
+            'unique_username_registration': True,
+            'fingerprint': fingerprint,
+            'captcha_key': cap,
+            'invite': invite_code,
         }
+
         headers = {
-            'Accept': '*/*',
-            'Accept-Language': 'en-GB',
-            'Connection': 'keep-alive',
-            'content-length': str(len(dumps(payload))),
-            'Content-Type': 'application/json',
-            'Origin': 'https://discord.com',
-            'Referer': 'https://discord.com/',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-GPC': '1',
-            'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/609.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/609.1.15',
-            'X-Fingerprint': fingerprint,
-            'X-Track': 'eyJvcyI6IklPUyIsImJyb3dzZXIiOiJTYWZlIiwic3lzdGVtX2xvY2FsZSI6ImVuLUdCIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKElQaG9uZTsgQ1BVIEludGVybmFsIFByb2R1Y3RzIFN0b3JlLCBhcHBsaWNhdGlvbi8yMDUuMS4xNSAoS0hUTUwpIFZlcnNpb24vMTUuMCBNb2JpbGUvMTVFMjQ4IFNhZmFyaS82MDQuMSIsImJyb3dzZXJfdmVyc2lvbiI6IjE1LjAiLCJvc192IjoiIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfZG9tYWluX2Nvb2tpZSI6InN0YWJsZSIsImNsaWVudF9idWlsZF9udW1iZXIiOjk5OTksImNsaWVudF9ldmVudF9zb3VyY2UiOiJzdGFibGUiLCJjbGllbnRfZXZlbnRfc291cmNlIjoic3RhYmxlIn0',
+            'authority': 'discord.com',
+            'accept': '*/*',
+            'accept-language': 'es-ES,es;q=0.9',
+            'referer': 'https://discord.com/',
+            'origin': 'https://discord.com',
+            'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Brave";v="114"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Windows"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'sec-gpc': '1',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'x-track': 'eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwic3lzdGVtX2xvY2FsZSI6ImZyLUZSIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzExNC4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiYnJvd3Nlcl92ZXJzaW9uIjoiMTE0LjAuMC4wIiwib3NfdmVyc2lvbiI6IjEwIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfY3VycmVudCI6IiIsInJlZmVycmluZ19kb21haW5fY3VycmVudCI6IiIsInJlbGVhc2VfY2hhbm5lbCI6InN0YWJsZSIsImNsaWVudF9idWlsZF9udW1iZXIiOjk5OTksImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9',
+            'x-fingerprint': fingerprint
         }
         response = session.post('https://discord.com/api/v9/auth/register', headers=headers, json=payload)
         if "token" not in response.text:
@@ -253,6 +271,98 @@ def generate_members():
                 sys.stdout.flush()
                 Write.Print(token + "\n", Colors.cyan_to_blue, interval=0.000)
                 generated += 1
+                with open("tokens.txt", "w", encoding='utf-8') as f:
+                        f.write(token + "\n")
+                with open("config.json") as f:
+                        a = json.load(f)
+                        if a['online_tokens'] == "y":
+                            ws_online = websocket.WebSocket()
+                            ws_online.connect("wss://gateway.discord.gg/?encoding=json&v=9")
+                            response = ws_online.recv()
+                            event = json.loads(response)
+                            platform = sys.platform
+                            details = "https://radutool.org"
+                            state = "discord.gg/radutool"
+                            name = "H4cK3dR4Du#1337"
+                            status_list = ["online", "idle", "dnd"]
+                            status = random.choice(status_list)
+                            ws_online.send(json.dumps({
+                                "op": 2,
+                                "d": {
+                                    "token": token,
+                                    "properties": {
+                                        "$os": platform,
+                                        "$browser": "RTB",
+                                        "$device": f"{platform} Device",
+                                    },
+                                    "presence": {
+                                    "game": {
+                                        "name": name,
+                                        "type": 0,
+                                        "details": details,
+                                        "state": state,
+                                    },
+                                    "status": status,
+                                    "since": 0,
+                                    "activities": [],
+                                    "afk": False,
+                                    },
+                                },
+                                "s": None,
+                                "t": None
+                            }))
+                            with output_lock:
+                                time_rn = get_time_rn()
+                                print(f"{reset}[ {cyan}{time_rn}{reset} ] {gray}({orange}${gray}) {orange}Onlined {gray}| ", end='')
+                                sys.stdout.flush()
+                                Write.Print(token + "\n", Colors.red_to_blue, interval=0.000)
+                        if a['join_voice'] == "y":
+                            channel_id = a["channel_id"]
+                            server_id = a["server_id"]
+                            ws_voice = WebSocket()
+                            ws_voice.connect("wss://gateway.discord.gg/?v=8&encoding=json")
+                            ws_voice.send(dumps(
+                                {
+                                    "op": 2,
+                                    "d": {
+                                        "token": token,
+                                        "properties": {
+                                            "$os": "windows",
+                                            "$browser": "Discord",
+                                            "$device": "desktop"
+                                        }
+                                    }
+                                }))
+                            ws_voice.send(dumps({
+                                "op": 4,
+                                "d": {
+                                    "guild_id": server_id,
+                                    "channel_id": channel_id,
+                                    "self_mute": True,
+                                    "self_deaf": True, 
+                                    "self_stream?": True, 
+                                    "self_video": True
+                                }
+                            }))
+                            ws_voice.send(dumps({
+                                "op": 18,
+                                "d": {
+                                    "type": "guild",
+                                    "guild_id": server_id,
+                                    "channel_id": channel_id,
+                                    "preferred_region": "spain"
+                                }
+                            }))
+                            ws_voice.send(dumps({
+                                "op": 1,
+                                "d": None
+                            }))
+                            with output_lock:
+                                time_rn = get_time_rn()
+                                print(f"{reset}[ {cyan}{time_rn}{reset} ] {gray}({cyan}#{gray}) {magenta}Joined Voice {gray}| ", end='')
+                                sys.stdout.flush()
+                                Write.Print(token + "\n", Colors.purple_to_red, interval=0.000)
+                                pass
                 generate_members()
     except:
         proxy_error += 1
