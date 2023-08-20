@@ -1,5 +1,12 @@
 {
     "captcha_key": "", 
     "invite": "",
-    "threads": 15
+    "threads": 69,
+    "proxy_scraper": "y",
+
+    "online_tokens": "y",
+
+    "join_voice": "n",
+    "channel_id": "",
+    "server_id": ""
 }
