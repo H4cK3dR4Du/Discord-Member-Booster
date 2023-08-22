@@ -271,7 +271,7 @@ def generate_members():
                 sys.stdout.flush()
                 Write.Print(token + "\n", Colors.cyan_to_blue, interval=0.000)
                 generated += 1
-                with open("tokens.txt", "w", encoding='utf-8') as f:
+                with open("tokens.txt", "a", encoding='utf-8') as f:
                         f.write(token + "\n")
                 with open("config.json") as f:
                         a = json.load(f)
