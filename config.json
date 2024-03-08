@@ -1,5 +1,5 @@
 {
-    "captcha_key": "", 
+    "captcha_key": "6Ldx3ZApAAAAAGOsisueMu_IhAT2EPAXjOSth1fi", 
     "invite": "",
     "threads": 69,
     "proxy_scraper": "y",
@@ -7,6 +7,6 @@
     "online_tokens": "y",
 
     "join_voice": "n",
-    "channel_id": "",
-    "server_id": ""
+    "channel_id": "1215708803971162182",
+    "server_id": "1215687598589214760"
 }
