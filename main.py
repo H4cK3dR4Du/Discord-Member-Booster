@@ -376,8 +376,8 @@ Write.Print(f"""
 \t\t / /  / /  __/ / / / / / /_/ /  __/ /     / /_/ / /_/ / /_/ (__  ) /_/  __/ /    
 \t\t/_/  /_/\___/_/ /_/ /_/_.___/\___/_/     /_____/\____/\____/____/\__/\___/_/     
                                                                                  
-\t\t\t\t\t[ https://github.com/H4cK3dR4Du ]
-\t\t\t\t\t [   Leave A Star Please! :)   ]
+\t\t\t\t\t[ Boost Tool By Kai Vendz ]
+\t\t\t\t\t [   Keep It P   ]
 """, Colors.cyan_to_blue, interval=0.000)
 print(f"\n\n")
 time.sleep(1)
