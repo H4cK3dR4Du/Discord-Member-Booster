@@ -30,5 +30,5 @@ This github repo is for EDUCATIONAL PURPOSES ONLY. I am NOT under any responsibi
 
 ## ✨ Issues / Doubts
 
-- If you have any questions do not hesitate to enter my discord: https://discord.gg/hcuxjpSfkU
+- If you have any questions do not hesitate to enter my discord: https://discord.gg/raducord
 - Or if you have any error do not forget to report it in: [issues](https://github.com/H4cK3dR4Du/Discord-Member-Booster/issues/new)
